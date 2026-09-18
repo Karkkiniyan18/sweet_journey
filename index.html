@@ -106,21 +106,63 @@ if (footer) {
 }
 
 // Demo login using Gmail and mobile number
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const message = document.getElementById("loginMessage");
+
+ 
+  const loginForm = document.getElementById("loginForm");
+  const loginMessage = document.getElementById("loginMessage");
+
+  const GOOGLE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbw9gklZDNF1Qkwc8gs-xv5g2zJyse_2b-e9Y_BEW3i7ikMp0H5A4nr5NgJdc2oU3Sr8/exec";
+
+  loginForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
     const gmail = document.getElementById("gmail").value.trim();
     const mobile = document.getElementById("mobile").value.trim();
 
-    if (gmail && mobile) {
-      localStorage.setItem("sweetJourneyUser", JSON.stringify({ gmail, mobile }));
-      message.textContent = "Details accepted. Redirecting...";
-      setTimeout(() => window.location.href = "home.html", 500);
+    if (!gmail || !mobile) {
+      loginMessage.textContent =
+        "Please enter Gmail and mobile number.";
+      return;
+    }
+
+    loginMessage.textContent = "Saving details...";
+
+    const formData = new URLSearchParams();
+    formData.append("gmail", gmail);
+    formData.append("mobile", mobile);
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      });
+
+      // Save locally
+      localStorage.setItem(
+        "sweetJourneyUser",
+        JSON.stringify({
+          gmail: gmail,
+          mobile: mobile
+        })
+      );
+
+      loginMessage.textContent =
+        "Details saved successfully! Redirecting...";
+
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 700);
+
+    } catch (error) {
+      console.error(error);
+
+      loginMessage.textContent =
+        "Unable to save details. Please try again.";
     }
   });
-}
+
 
 // Orders demo storage
 const orderForm = document.getElementById("orderForm");
